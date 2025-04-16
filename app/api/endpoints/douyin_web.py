@@ -1,3 +1,4 @@
+from re import search
 from typing import List
 
 from fastapi import APIRouter, Body, Query, Request, HTTPException  # 导入FastAPI组件
@@ -1058,6 +1059,77 @@ async def get_all_webcast_id(request: Request,
     """
     try:
         data = await DouyinWebCrawler.get_all_webcast_id(url)
+        return ResponseModel(code=200,
+                             router=request.url.path,
+                             data=data)
+    except Exception as e:
+        status_code = 400
+        detail = ErrorResponseModel(code=status_code,
+                                    router=request.url.path,
+                                    params=dict(request.query_params),
+                                    )
+        raise HTTPException(status_code=status_code, detail=detail.dict())
+
+
+# 搜索抖音视频
+@router.get("/search_videos", response_model=ResponseModel,
+            summary="搜索抖音视频/Search Douyin videos")
+async def search_videos(request: Request,
+                       keyword: str = Query(example="舞蹈", description="搜索关键词/Search keyword"),
+                       offset: int = Query(default=0, description="偏移量/Offset"),
+                       count: int = Query(default=16, description="每页数量/Number per page"),
+                       search_id: str | None = Query(default=None, description="搜索id/Search id")):
+    """
+    # [中文]
+    ### 用途:
+    - 搜索抖音视频
+    ### 参数:
+    - keyword: 搜索关键词
+    - offset: 偏移量
+    - count: 每页数量
+    ### 返回:
+    - 搜索结果数据
+
+    # [English]
+    ### Purpose:
+    - Search Douyin videos
+    ### Parameters:
+    - keyword: Search keyword
+    - offset: Offset
+    - count: Number per page
+    ### Return:
+    - Search result data
+
+    # [示例/Example]
+    keyword = "舞蹈"
+    offset = 0
+    count = 16
+    """
+    try:
+        data = await DouyinWebCrawler.video_search(keyword, offset, count, search_id)
+        return ResponseModel(code=200,
+                             router=request.url.path,
+                             data=data)
+    except Exception as e:
+        status_code = 400
+        detail = ErrorResponseModel(code=status_code,
+                                    router=request.url.path,
+                                    params=dict(request.query_params),
+                                    )
+        raise HTTPException(status_code=status_code, detail=detail.dict())
+
+
+
+# 搜索抖音直播
+@router.get("/search_lives", response_model=ResponseModel,
+            summary="搜索抖音视频/Search Douyin lives")
+async def search_videos(request: Request,
+                       keyword: str = Query(example="舞蹈", description="搜索关键词/Search keyword"),
+                       offset: int = Query(default=0, description="偏移量/Offset"),
+                       count: int = Query(default=16, description="每页数量/Number per page"),
+                       search_id: str | None = Query(default=None, description="搜索id/Search id")):
+    try:
+        data = await DouyinWebCrawler.live_search(keyword, offset, count, search_id)
         return ResponseModel(code=200,
                              router=request.url.path,
                              data=data)

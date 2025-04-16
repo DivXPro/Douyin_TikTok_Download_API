@@ -1,3 +1,5 @@
+import keyword
+from re import search
 from typing import Any, List
 from pydantic import BaseModel, Field
 
@@ -80,7 +82,6 @@ class BaseLoginModel(BaseModel):
     account_sdk_source: str = "sso"
     sdk_version: str = "2.2.7-beta.6"
     language: str = "zh"
-
 
 # Model
 class UserProfile(BaseRequestModel):
@@ -284,6 +285,44 @@ class UserFollower(BaseRequestModel):
     gps_access: int = 0
     address_book_access: int = 0
     is_top: int = 1
+
+class VideoSearch(BaseRequestModel):
+    keyword: str
+    enable_history: int = 1
+    query_correct_type: int = 1
+    search_source: str = "normal_search"
+    list_type: str = "single"
+    offset: int = 0
+    count: int = 10
+
+class LiveSearch(BaseRequestModel):
+    keyword: str
+    enable_history: int = 1
+    query_correct_type: int = 1
+    search_source: str = "aweme_live"
+    list_type: str = "single"
+    offset: int = 0
+    count: int = 10
+    
+class VideoSearchMore(BaseRequestModel):
+    keyword: str
+    enable_history: int = 1
+    query_correct_type: int = 1
+    search_source: str = "normal_search"
+    list_type: str = "single"
+    search_id: str
+    offset: int = 0
+    count: int = 10
+
+class LiveSearchMore(BaseRequestModel):
+    keyword: str
+    enable_history: int = 1
+    query_correct_type: int = 1
+    search_source: str = "aweme_live"
+    list_type: str = "single"
+    search_id: str
+    offset: int = 0
+    count: int = 10
 
 
 # 列表作品

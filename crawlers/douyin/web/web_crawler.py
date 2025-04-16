@@ -47,7 +47,7 @@ from crawlers.douyin.web.models import (
     BaseRequestModel, LiveRoomRanking, PostComments,
     PostCommentsReply, PostDetail,
     UserProfile, UserCollection, UserLike, UserLive,
-    UserLive2, UserMix, UserPost
+    UserLive2, UserMix, UserPost, VideoSearch, VideoSearchMore
 )
 # 抖音应用的工具类
 from crawlers.douyin.web.utils import (AwemeIdFetcher,  # Aweme ID获取
@@ -58,6 +58,8 @@ from crawlers.douyin.web.utils import (AwemeIdFetcher,  # Aweme ID获取
                                        WebCastIdFetcher,  # 直播ID获取
                                        extract_valid_urls  # URL提取
                                        )
+from crawlers.utils.config import env_config
+
 
 # 配置文件路径
 path = os.path.abspath(os.path.dirname(__file__))
@@ -72,12 +74,13 @@ class DouyinWebCrawler:
     # 从配置文件中获取抖音的请求头
     async def get_douyin_headers(self):
         douyin_config = config["TokenManager"]["douyin"]
+        douyin_env_config = env_config.douyin
         kwargs = {
             "headers": {
                 "Accept-Language": douyin_config["headers"]["Accept-Language"],
                 "User-Agent": douyin_config["headers"]["User-Agent"],
                 "Referer": douyin_config["headers"]["Referer"],
-                "Cookie": douyin_config["headers"]["Cookie"],
+                "Cookie": douyin_env_config["headers"]["Cookie"],
             },
             "proxies": {"http://": douyin_config["proxies"]["http"], "https://": douyin_config["proxies"]["https"]},
         }
@@ -105,7 +108,6 @@ class DouyinWebCrawler:
             params_dict["msToken"] = ''
             a_bogus = BogusManager.ab_model_2_endpoint(params_dict, kwargs["headers"]["User-Agent"])
             endpoint = f"{DouyinAPIEndpoints.POST_DETAIL}?{urlencode(params_dict)}&a_bogus={a_bogus}"
-
             response = await crawler.fetch_get_json(endpoint)
         return response
 
@@ -254,6 +256,36 @@ class DouyinWebCrawler:
             endpoint = BogusManager.xb_model_2_endpoint(
                 DouyinAPIEndpoints.DOUYIN_HOT_SEARCH, params.dict(), kwargs["headers"]["User-Agent"]
             )
+            response = await crawler.fetch_get_json(endpoint)
+        return response
+
+    # 视频搜索
+    async def video_search(self, keyword: str, offset: int = 0, count: int = 16, search_id: str | None = None):
+        kwargs = await self.get_douyin_headers()
+        base_crawler = BaseCrawler(proxies=kwargs["proxies"], crawler_headers=kwargs["headers"])
+        async with base_crawler as crawler:
+            # 对keyword进行URL安全编码
+            encoded_keyword = quote(keyword)
+            params = VideoSearch(keyword=encoded_keyword, offset=offset, count=count) if search_id is None else VideoSearchMore(keyword=encoded_keyword, offset=offset, count=count, search_id=search_id)
+            endpoint = BogusManager.xb_model_2_endpoint(
+                DouyinAPIEndpoints.VIDEO_SEARCH, params.dict(), kwargs["headers"]["User-Agent"]
+            )
+            print(f"endpoint: {endpoint}")
+            response = await crawler.fetch_get_json(endpoint)
+        return response
+
+    # 直播搜索
+    async def live_search(self, keyword: str, offset: int = 0, count: int = 16, search_id: str | None = None):
+        kwargs = await self.get_douyin_headers()
+        base_crawler = BaseCrawler(proxies=kwargs["proxies"], crawler_headers=kwargs["headers"])
+        async with base_crawler as crawler:
+            # 对keyword进行URL安全编码
+            encoded_keyword = quote(keyword)
+            params = VideoSearch(keyword=encoded_keyword, offset=offset, count=count) if search_id is None else VideoSearchMore(keyword=encoded_keyword, offset=offset, count=count, search_id=search_id)
+            endpoint = BogusManager.xb_model_2_endpoint(
+                DouyinAPIEndpoints.VIDEO_SEARCH, params.dict(), kwargs["headers"]["User-Agent"]
+            )
+            print(f"endpoint: {endpoint}")
             response = await crawler.fetch_get_json(endpoint)
         return response
 

@@ -252,7 +252,6 @@ class BogusManager:
             raise TypeError("参数必须是字典类型")
 
         param_str = "&".join([f"{k}={v}" for k, v in params.items()])
-
         try:
             xb_value = XB(user_agent).getXBogus(param_str)
         except Exception as e:
